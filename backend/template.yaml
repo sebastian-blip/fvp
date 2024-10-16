@@ -1,3 +1,11 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Aplicación para la gestión de fondos FPV y FIC
+
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Aplicación para la gestión de fondos FPV y FIC
+
 Resources:
   UsuariosTable:
     Type: AWS::Serverless::SimpleTable
@@ -18,3 +26,66 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
+
+  FondosTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: id_fondo
+        Type: Number
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  SuscribirFondoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.suscribir_fondo
+      Runtime: python3.10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsuariosTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref UsuariosTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref TransaccionesTable
+      Events:
+        Suscribir:
+          Type: Api
+          Properties:
+            Path: /fondos/suscribir
+            Method: post
+
+  CancelarFondoFunction:  # <-- Nueva función
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.cancelar_fondo
+      Runtime: python3.10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref UsuariosTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref UsuariosTable
+        - DynamoDBWritePolicy:
+            TableName: !Ref TransaccionesTable
+      Events:
+        Cancelar:
+          Type: Api
+          Properties:
+            Path: /fondos/cancelar
+            Method: post
+
+  VerHistorialFunction:  # <-- Nueva función
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: handler.ver_historial
+      Runtime: python3.10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TransaccionesTable
+      Events:
+        Historial:
+          Type: Api
+          Properties:
+            Path: /fondos/historial
+            Method: post
